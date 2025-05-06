@@ -47,14 +47,23 @@ class HomeScreen extends StatelessWidget {
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
-              UserAccountsDrawerHeader(
-                decoration: const BoxDecoration(color: Colors.blue),
-                accountName: const Text('Welcome'),
-                accountEmail: const Text('user@financeapp.com'),
-                currentAccountPicture: const CircleAvatar(
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 40),
-                ),
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  String email = 'user@financeapp.com';
+                  if (state is Authenticated) {
+                    email = state.email;
+                  }
+
+                  return UserAccountsDrawerHeader(
+                    decoration: const BoxDecoration(color: Colors.blue),
+                    accountName: const Text('Welcome'),
+                    accountEmail: Text(email),
+                    currentAccountPicture: const CircleAvatar(
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.person, size: 40),
+                    ),
+                  );
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.brightness_6),

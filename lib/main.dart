@@ -11,7 +11,6 @@ import 'package:personal_finance_app/features/finances/bloc/finances_event.dart'
 import 'package:personal_finance_app/features/home/ui/home_screen.dart';
 import 'features/auth/bloc/auth_bloc.dart';
 
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() async {

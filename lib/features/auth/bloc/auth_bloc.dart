@@ -9,8 +9,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc(FirebaseAuth instance) : super(AuthInitial()) {
     on<CheckAuthStatusEvent>((event, emit) {
       final user = _auth.currentUser;
-      emit(user != null ? Authenticated() : Unauthenticated());
+      if (user != null) {
+        emit(Authenticated(user.email!));
+      } else {
+        emit(Unauthenticated());
+      }
     });
+      
 
     on<LoginRequested>((event, emit) async {
       emit(AuthLoading());
@@ -19,7 +24,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           email: event.email,
           password: event.password,
         );
-        emit(Authenticated());
+        emit(Authenticated( event.email));
+        
       } catch (e) {
         emit(AuthError(e.toString()));
       }
@@ -32,8 +38,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           email: event.email,
           password: event.password,
         );
-        emit(Authenticated());
-        emit(AuthLoggedOut());
+        emit(Authenticated(event.email));
       } catch (e) {
         emit(AuthError(e.toString()));
       }
