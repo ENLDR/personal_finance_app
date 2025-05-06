@@ -43,6 +43,9 @@ dependencies:
   cloud_firestore: ^5.6.7
   uuid:
   fl_chart:
+  url_launcher:
+  google_fonts:
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

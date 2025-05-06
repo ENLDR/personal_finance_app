@@ -94,8 +94,7 @@ class _SummaryChartScreenState extends State<SummaryChartScreen> {
                               if (value > 0) {
                                 final selectedType =
                                     index == 0 ? 'income' : 'expense';
-                                print("Tapped Index: $index");
-                                print("Selected Type: $selectedType");
+                                
 
                                 final transactions =
                                     (context.read<FinanceBloc>().state
@@ -123,8 +122,6 @@ class _SummaryChartScreenState extends State<SummaryChartScreen> {
                           },
                         ),
                       ),
-                      swapAnimationDuration: const Duration(milliseconds: 150),
-                      swapAnimationCurve: Curves.linear,
                     ),
                   ),
                   const SizedBox(height: 30),

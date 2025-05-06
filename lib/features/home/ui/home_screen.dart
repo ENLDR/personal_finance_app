@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:personal_finance_app/core/common/bloc/theme_bloc.dart';
 import 'package:personal_finance_app/core/common/bloc/theme_event.dart';
+import 'package:personal_finance_app/features/news/ui/financial_news_screen.dart';
 import 'package:personal_finance_app/features/summary/widget/summary_card.dart';
 import 'package:personal_finance_app/features/auth/bloc/auth_bloc.dart';
 import 'package:personal_finance_app/features/auth/bloc/auth_event.dart';
 import 'package:personal_finance_app/features/auth/bloc/auth_state.dart';
 import 'package:personal_finance_app/features/auth/ui/login_screen.dart';
-
 import 'package:personal_finance_app/features/finances/bloc/finances_bloc.dart';
 import 'package:personal_finance_app/features/finances/bloc/finances_event.dart';
 import 'package:personal_finance_app/features/finances/bloc/finances_state.dart';
@@ -32,14 +32,29 @@ class HomeScreen extends StatelessWidget {
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text("My Finances")),
+        appBar: AppBar(
+          title: const Text("My Finances"),
+          centerTitle: true,
+          elevation: 4,
+        ),
         drawer: Drawer(
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
+          ),
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
-              const DrawerHeader(
-                decoration: BoxDecoration(color: Colors.blue),
-                child: Text('Settings', style: TextStyle(color: Colors.white)),
+              UserAccountsDrawerHeader(
+                decoration: const BoxDecoration(color: Colors.blue),
+                accountName: const Text('Welcome'),
+                accountEmail: const Text('user@financeapp.com'),
+                currentAccountPicture: const CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.person, size: 40),
+                ),
               ),
               ListTile(
                 leading: const Icon(Icons.brightness_6),
@@ -62,7 +77,20 @@ class HomeScreen extends StatelessWidget {
                   );
                 },
               ),
-
+              ListTile(
+                leading: const Icon(Icons.article),
+                title: const Text('Financial News'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const FinancialNewsScreen(),
+                    ),
+                  );
+                },
+              ),
+              const Divider(),
               ListTile(
                 leading: const Icon(Icons.logout),
                 title: const Text('Logout'),
@@ -74,7 +102,6 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
-
         body: BlocBuilder<FinanceBloc, FinanceState>(
           builder: (context, state) {
             if (state is FinanceLoading) {
@@ -85,11 +112,11 @@ class HomeScreen extends StatelessWidget {
                   Card(
                     margin: const EdgeInsets.all(16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    elevation: 4,
+                    elevation: 6,
                     child: Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
                           buildSummaryRow(
@@ -97,12 +124,13 @@ class HomeScreen extends StatelessWidget {
                             state.totalIncome,
                             Colors.green,
                           ),
+                          const SizedBox(height: 8),
                           buildSummaryRow(
                             "Total Expenses",
                             state.totalExpense,
                             Colors.red,
                           ),
-                          const Divider(),
+                          const Divider(thickness: 1.5),
                           buildSummaryRow(
                             "Balance",
                             state.balance,
@@ -112,22 +140,48 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Recent Transactions",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
                   Expanded(
-                    child: ListView.builder(
+                    child: ListView.separated(
                       itemCount: state.transactions.length,
+                      separatorBuilder: (_, __) => const Divider(),
                       itemBuilder: (context, index) {
                         final txn = state.transactions[index];
                         return ListTile(
-                          leading: Icon(
-                            txn.type == 'income'
-                                ? Icons.arrow_upward
-                                : Icons.arrow_downward,
-                            color:
+                          leading: CircleAvatar(
+                            backgroundColor:
                                 txn.type == 'income'
-                                    ? Colors.green
-                                    : Colors.red,
+                                    ? Colors.green[100]
+                                    : Colors.red[100],
+                            child: Icon(
+                              txn.type == 'income'
+                                  ? Icons.arrow_downward
+                                  : Icons.arrow_upward,
+                              color:
+                                  txn.type == 'income'
+                                      ? Colors.green
+                                      : Colors.red,
+                            ),
                           ),
-                          title: Text(txn.title),
+                          title: Text(
+                            txn.title,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
                           subtitle: Text(
                             txn.date.toLocal().toString().split(' ')[0],
                           ),
@@ -138,6 +192,7 @@ class HomeScreen extends StatelessWidget {
                                 Text(
                                   '\$${txn.amount.toStringAsFixed(2)}',
                                   style: TextStyle(
+                                    fontWeight: FontWeight.bold,
                                     color:
                                         txn.type == 'income'
                                             ? Colors.green
@@ -153,7 +208,7 @@ class HomeScreen extends StatelessWidget {
                                         MaterialPageRoute(
                                           builder:
                                               (_) => TransactionFormScreen(
-                                                txn: state.transactions[index],
+                                                txn: txn,
                                               ),
                                         ),
                                       );
@@ -196,7 +251,7 @@ class HomeScreen extends StatelessWidget {
             }
           },
         ),
-        floatingActionButton: FloatingActionButton(
+        floatingActionButton: FloatingActionButton.extended(
           onPressed: () async {
             final result = await Navigator.push(
               context,
@@ -206,7 +261,8 @@ class HomeScreen extends StatelessWidget {
               context.read<FinanceBloc>().add(LoadTransactionsEvent());
             }
           },
-          child: const Icon(Icons.add),
+          icon: const Icon(Icons.add),
+          label: const Text("Add"),
         ),
       ),
     );

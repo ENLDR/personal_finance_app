@@ -18,6 +18,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   String _title = '';
   double _amount = 0;
   String _type = 'expense';
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
@@ -26,17 +27,33 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       _title = widget.txn!.title;
       _amount = widget.txn!.amount;
       _type = widget.txn!.type;
+      _selectedDate = widget.txn!.date;
+    }
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
     }
   }
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+
       final newTxn = TransactionModel(
         id: widget.txn?.id ?? const Uuid().v4(),
         title: _title,
         amount: _amount,
-        date: DateTime.now(),
+        date: _selectedDate,
         type: _type,
       );
 
@@ -47,6 +64,16 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         bloc.add(UpdateTransactionEvent(newTxn));
       }
 
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.txn == null
+                ? 'Transaction added successfully!'
+                : 'Transaction updated successfully!',
+          ),
+        ),
+      );
+
       Navigator.pop(context, true);
     }
   }
@@ -54,22 +81,31 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Transaction")),
+      appBar: AppBar(
+        title: Text(
+          widget.txn == null ? "Add Transaction" : "Edit Transaction",
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: Column(
+          child: ListView(
             children: [
               TextFormField(
+                initialValue: _title,
                 decoration: const InputDecoration(labelText: 'Title'),
+                textInputAction: TextInputAction.next,
                 onSaved: (value) => _title = value!,
                 validator:
                     (value) => value!.isEmpty ? 'Please enter a title' : null,
               ),
+              const SizedBox(height: 16),
               TextFormField(
+                initialValue: _amount != 0 ? _amount.toString() : '',
                 decoration: const InputDecoration(labelText: 'Amount'),
                 keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
                 onSaved: (value) => _amount = double.parse(value!),
                 validator:
                     (value) =>
@@ -87,7 +123,15 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                 onChanged: (value) => setState(() => _type = value!),
                 decoration: const InputDecoration(labelText: 'Type'),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+              TextButton.icon(
+                onPressed: _pickDate,
+                icon: const Icon(Icons.calendar_today),
+                label: Text(
+                  "Date: ${_selectedDate.toLocal().toString().split(' ')[0]}",
+                ),
+              ),
+              const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: _submit,
                 icon: const Icon(Icons.check),
